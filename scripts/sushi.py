@@ -47,7 +47,7 @@ class limit_order:
         else:
             self.token.approve(
                 self.router.address,
-                2**256-1,
+                self.amount*(1+self.maxSlippage),
                 {'from': self.user}
             )
         
@@ -58,16 +58,13 @@ class limit_order:
             print(f"Desired Price: {self.limitPrice}")
 
             delta = abs(self.limitPrice - latestPrice)
-            #i need to convert the limit price since it is for just one 
-            #token whereas latestPrice is for the whole thing. Or I can 
-            #just convert latestPrice to a single token
             print(f"Delta: {delta}")
 
             slippage = delta/self.limitPrice
             print(f"Slippage: {slippage}")
             
             if slippage <= self.maxSlippage:
-                minAmountOut = 0
+                minAmountOut = 0 #need to change this
                 self.executeSwap(minAmountOut,path)
                 print("Swap completed")
                 self.executed=True
@@ -101,7 +98,7 @@ class limit_order:
             amountOut=self.router.getAmountsOut(self.amount,path)[-1]*10**-self.token.decimals()
             return self.amount/amountOut
         else:
-            return self.router.getAmountsOut(self.amount,path)[-1]/((self.amount*10**-self.token.decimals()))#*10**-self.usdc.decimals())
+            return self.router.getAmountsOut(self.amount,path)[-1]/((self.amount*10**-self.token.decimals()))
 
     def getPath(self):
         if self.buy and self.token.address != self.weth.address:
